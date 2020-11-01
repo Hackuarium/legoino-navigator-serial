@@ -1,0 +1,49 @@
+<html>
+<head>
+    <script src="../dist/legoino-navigator-serial.js"></script>
+</head>
+<body>
+    <div>
+        <button onclick="devicesManager.updateDevices()">updateDevices</button>
+        <button onclick="devicesManager.requestDevices()">requestDevices</button>
+        <input type="text" value="h" id="command">
+        <button onclick="sendCommand()">sendCommand</button>
+    </div>
+   
+    <textarea id="result" cols="50" rows="30"></textarea>
+    <div id="devices"></div>
+  <script>
+      const devicesManager=new LegoinoSerial.DevicesManager(navigator.serial);
+      async function doAll() {
+        await devicesManager.updateDevices();
+        let devices = devicesManager.getDevicesList();
+
+        devicesManager.continuousUpdateDevices({callback: (devices) => {
+            const table=devicesToTable(devices);
+            document.getElementById('devices').innerHTML=table;
+        }});
+
+      }
+      doAll();
+
+      async function sendCommand() {
+          let command=document.getElementById('command').value;
+          let result = await devicesManager.sendCommand("57332",command);
+          document.getElementById('result').value=result
+      }
+
+      function devicesToTable(devices) {
+        let result='<table border="1">';
+        for (let device of devices) {
+            result+="<tr>";
+            for (let key of Object.keys(device)) {
+                result+="<td>"+device[key]+"</td>";
+            }
+            result+="</tr>";
+        }
+        result+="</table>";
+        return result;
+      }
+  </script>
+</body>
+</html>
