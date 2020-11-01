@@ -4,7 +4,7 @@ import delay from 'delay';
 
 import { Action } from './Action';
 
-const debug = console.log;
+const debug = () => {};
 
 export const STATUS_OPENING = 1;
 export const STATUS_OPENED = 2;
@@ -112,7 +112,7 @@ export class Device {
   }
 
   async write(data) {
-    const dataArrayBuffer = this.encoder.encode(data + '\n');
+    const dataArrayBuffer = this.encoder.encode(`${data}\n`);
     return this.writer.write(dataArrayBuffer);
   }
 

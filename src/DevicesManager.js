@@ -1,12 +1,11 @@
 /* eslint-disable no-await-in-loop */
-import EventEmitter from './util/EventEmitter';
-
 import delay from 'delay';
-import checkSerial from './util/checkSerial';
 
 import { Device, STATUS_MISSING, STATUS_OPENED, STATUS_CLOSED } from './Device';
+import EventEmitter from './util/EventEmitter';
+import checkSerial from './util/checkSerial';
 
-const debug = console.log;
+const debug = () => {};
 
 /**
  * Class creating a new serial bridge to manage serial ports.

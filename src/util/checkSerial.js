@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 export default function checkSerial(serial) {
   if (!serial) {
     console.error(
