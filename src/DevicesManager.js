@@ -23,7 +23,10 @@ export class DevicesManager extends EventEmitter {
     this.devices = [];
     this.portFilter =
       options.portFilter === undefined
-        ? [{ usbProductId: 37384, usbVendorId: 6991 }]
+        ? [
+            { usbProductId: 37384, usbVendorId: 6991 },
+            { usbProductId: 60000, usbVendorId: 4292 },
+          ]
         : options.portFilter;
     this.baudRate = options.baudRate || 115200;
     this.interCommandDelay =
