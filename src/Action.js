@@ -49,9 +49,9 @@ export class Action {
   appendAnswer(buffer) {
     let string = new TextDecoder().decode(buffer);
     this.status = STATUS_ANSWER_PARTIALLY_RECEIVED;
-    this.answer += string;
-    if (!this.answer.replace(/\r/g, '').endsWith('\n\n')) return;
-    let lines = this.answer.split(/\r?\n/);
+    this.answer += string.replace(/\r/g, '');
+    if (!this.answer.endsWith('\n\n') && this.answer !== '\n') return;
+    let lines = this.answer.split(/\n/);
     if (lines.length > 0 && lines[lines.length - 1] === '') {
       lines = lines.filter((line) => line);
       this.status = STATUS_ANSWER_RECEIVED;
