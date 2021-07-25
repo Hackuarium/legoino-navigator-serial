@@ -35,7 +35,7 @@ export class Action {
         return;
       }
       this.status = STATUS_ERROR;
-      this.reject('Timeout');
+      this.reject(`Timeout, waiting over ${this.timeout}ms`);
       this.finished();
     }, this.timeout);
   }
