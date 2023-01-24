@@ -72,6 +72,13 @@ export class Device {
     debug(`Opening`);
     await this.serialPort.open({
       baudRate: this.baudRate,
+    })
+    .catch((error) => {
+      this.error(error);
+      this.close();
+    })
+    .then(() => {
+      this.ensureOpen();
     });
     this.reader = this.serialPort.readable.getReader();
     this.writer = this.serialPort.writable.getWriter();
