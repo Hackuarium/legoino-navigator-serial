@@ -1,4 +1,4 @@
-/* eslint-disable no-await-in-loop */
+
 import delay from 'delay';
 
 import { Device, STATUS_MISSING, STATUS_OPENED, STATUS_CLOSED } from './Device';

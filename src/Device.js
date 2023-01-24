@@ -1,4 +1,4 @@
-/* eslint-disable no-await-in-loop */
+
 
 import delay from 'delay';
 
@@ -70,16 +70,17 @@ export class Device {
 
   async open() {
     debug(`Opening`);
-    await this.serialPort.open({
-      baudRate: this.baudRate,
-    })
-    .catch((error) => {
-      this.error(error);
-      this.close();
-    })
-    .then(() => {
-      this.ensureOpen();
-    });
+    await this.serialPort
+      .open({
+        baudRate: this.baudRate,
+      })
+      .catch((error) => {
+        this.error(error);
+        this.close();
+      })
+      .then(() => {
+        this.ensureOpen();
+      });
     this.reader = this.serialPort.readable.getReader();
     this.writer = this.serialPort.writable.getWriter();
     this.id = await this.get('uq');
@@ -90,9 +91,8 @@ export class Device {
    We need to add this command in the queue and wait it resolves or rejects
   */
   async get(command, options = {}) {
-    const {
-      commandExpirationDelay = this.defaultCommandExpirationDelay,
-    } = options;
+    const { commandExpirationDelay = this.defaultCommandExpirationDelay } =
+      options;
 
     const action = new Action(command, {
       timeout: commandExpirationDelay,
