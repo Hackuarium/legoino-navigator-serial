@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/Hackuarium/legoino-navigator-serial/compare/v0.2.1...v0.2.2) (2023-03-06)
+
+
+### Bug Fixes
+
+* rename rollup.config.js to allow release with last version ([b515cb6](https://github.com/Hackuarium/legoino-navigator-serial/commit/b515cb69da9e94136fd3db374ea5a52d25ea7aec))
+
 ## [0.2.1](https://github.com/Hackuarium/legoino-navigator-serial/compare/v0.2.0...v0.2.1) (2023-03-06)
 
 
