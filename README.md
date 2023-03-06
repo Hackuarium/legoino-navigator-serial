@@ -28,7 +28,7 @@ const result = library(args);
 
 [npm-image]: https://img.shields.io/npm/v/legoino-navigator-serial.svg
 [npm-url]: https://www.npmjs.com/package/legoino-navigator-serial
-[ci-image]: https://github.com/hackuarium/legoino-navigator-serial/workflows/Node.js%20CI/badge.svg?branch=master
+[ci-image]: https://github.com/hackuarium/legoino-navigator-serial/workflows/Node.js%20CI/badge.svg?branch=main
 [ci-url]: https://github.com/hackuarium/legoino-navigator-serial/actions?query=workflow%3A%22Node.js+CI%22
 [codecov-image]: https://img.shields.io/codecov/c/github/hackuarium/legoino-navigator-serial.svg
 [codecov-url]: https://codecov.io/gh/hackuarium/legoino-navigator-serial
