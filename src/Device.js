@@ -1,5 +1,3 @@
-
-
 import delay from 'delay';
 
 import { Action } from './Action';
