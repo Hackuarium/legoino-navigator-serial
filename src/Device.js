@@ -102,7 +102,7 @@ export class Device {
   }
 
   error(error) {
-    debug(`Error ${this.port.path}`);
+    debug(`Error ${this.serialPort?.path}`);
     debug(error);
     this.status = STATUS_ERROR;
     this.emit('adapter', {
