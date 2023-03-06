@@ -1,4 +1,3 @@
-
 import delay from 'delay';
 
 import { Device, STATUS_MISSING, STATUS_OPENED, STATUS_CLOSED } from './Device';
@@ -24,6 +23,7 @@ export class DevicesManager extends EventEmitter {
     this.portFilter =
       options.portFilter === undefined
         ? [
+            { usbProductId: 0x0043, usbVendorId: 0x2341 }, // arduino uno
             { usbProductId: 37384, usbVendorId: 6991 },
             { usbProductId: 60000, usbVendorId: 4292 },
           ]
