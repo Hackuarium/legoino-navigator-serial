@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/Hackuarium/legoino-navigator-serial/compare/v0.1.1...v0.2.0) (2023-03-06)
+
+
+### Features
+
+* add usb ID of Arduino Uno ([0f67b9f](https://github.com/Hackuarium/legoino-navigator-serial/commit/0f67b9f763833dc7c97805303cc6bdbef3d197d9))
+
+
+### Bug Fixes
+
+* catch error ([2957d8e](https://github.com/Hackuarium/legoino-navigator-serial/commit/2957d8e3553916c954cdf62f42cec0a66c199d0b))
+
 ### [0.1.1](https://www.github.com/Hackuarium/legoino-navigator-serial/compare/v0.1.0...v0.1.1) (2021-07-25)
 
 
