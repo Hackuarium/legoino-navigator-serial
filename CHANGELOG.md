@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/Hackuarium/legoino-navigator-serial/compare/v0.2.0...v0.2.1) (2023-03-06)
+
+
+### Bug Fixes
+
+* force release after branch migration ([660af40](https://github.com/Hackuarium/legoino-navigator-serial/commit/660af40cdc5a4766f21d9192a36e8253b4a6f3a0))
+
 ## [0.2.0](https://github.com/Hackuarium/legoino-navigator-serial/compare/v0.1.1...v0.2.0) (2023-03-06)
 
 

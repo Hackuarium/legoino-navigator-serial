@@ -1,6 +1,6 @@
 {
   "name": "legoino-navigator-serial",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Use navigator.serial to manage legoino devices",
   "main": "lib/index.js",
   "module": "src/index.js",
