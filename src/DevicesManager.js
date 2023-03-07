@@ -4,37 +4,29 @@ import { Device, STATUS_MISSING, STATUS_OPENED, STATUS_CLOSED } from './Device';
 import EventEmitter from './util/EventEmitter';
 import checkSerial from './util/checkSerial';
 
-const debug = () => {};
-
 /**
  * Class creating a new serial bridge to manage serial ports.
  * @param {object} [options={}]
- * @param {function} [options.portFilter=[{usbProductId:37384, usbVendorId:6991}]] Filter the serial ports to address.
- * @param {number} [options.baudRate=57200] Baud rate
- * @param {number} [options.interCommandDelay=100] Time to wait between commands in [ms]
- * @param {number} [options.defaultCommandExpirationDelay=100] Time to wait for answer before timeout
+ * @param {Array} [options.portFilter] Filter the serial ports to address.
+ * @param {object} [options.command={}]
+ * @param {number} [options.command.timeout=100] Time to wait for answer before timeout
+ * @param {Function} [options.command.isEndCommandAnswer]
+ * @param {Function} [options.command.endCommandAnswerCallback]
+ * @param {object} [options.device={}]
+ * @param {AsyncFunction} [options.device.getID=(device)=>()] Time to wait between commands in [ms]
+ * @param {number} [options.device.baudRate=115200] Baud rate
+ * @param {number} [options.device.interCommandDelay=100] Time to wait between commands in [ms]
  */
 export class DevicesManager extends EventEmitter {
   constructor(serial, options = {}) {
     super();
     checkSerial(serial);
     this.serial = serial;
+    this.logger = options.logger;
     this.devices = [];
-    this.portFilter =
-      options.portFilter === undefined
-        ? [
-            { usbProductId: 0x0043, usbVendorId: 0x2341 }, // arduino uno
-            { usbProductId: 37384, usbVendorId: 6991 },
-            { usbProductId: 60000, usbVendorId: 4292 },
-          ]
-        : options.portFilter;
-    this.baudRate = options.baudRate || 115200;
-    this.interCommandDelay =
-      options.interCommandDelay === undefined ? 100 : options.interCommandDelay;
-    this.defaultCommandExpirationDelay =
-      options.defaultCommandExpirationDelay === undefined
-        ? 100
-        : options.defaultCommandExpirationDelay;
+    this.portFilter = options.portFilter;
+    this.commandOptions = options.command ?? {};
+    this.deviceOptions = options.device ?? {};
   }
 
   /**
@@ -53,7 +45,7 @@ export class DevicesManager extends EventEmitter {
   async updateDevices() {
     const serialPorts = await this.serial.getPorts();
 
-    debug('updateDevices');
+    this.logger?.trace('start updateDevices');
 
     const missingDevicesSerialPort = this.devices.filter(
       (device) => !serialPorts.includes(device.serialPort),
@@ -64,24 +56,30 @@ export class DevicesManager extends EventEmitter {
       }
       device.status = STATUS_MISSING;
     }
-
     for (let serialPort of serialPorts) {
-      let device = this.devices.filter(
+      let device = this.devices.find(
         (device) => device.serialPort === serialPort,
-      )[0];
+      );
       if (device) {
         await device.ensureOpen();
       } else {
+        const serialPortInfo = serialPort.getInfo();
         let newDevice = new Device(serialPort, {
           baudRate: this.baudRate,
-          interCommandDelay: this.interCommandDelay,
-          defaultCommandExpirationDelay: this.defaultCommandExpirationDelay,
+          ...serialPortInfo,
+          commandOptions: this.commandOptions,
+          deviceOptions: this.deviceOptions,
+          logger: this.logger.child({
+            kind: 'Device',
+            ...serialPort.getInfo(),
+          }),
         });
         this.devices.push(newDevice);
         await newDevice.open();
       }
     }
-    // check if there are any new ports
+
+    this.logger?.trace('finish updateDevices');
   }
 
   /**
@@ -141,7 +139,9 @@ export class DevicesManager extends EventEmitter {
     if (!device) {
       throw Error(`Device ${id} not found`);
     }
-    if (device && device.isReady()) return device.get(command);
+    if (device && device.isReady()) {
+      return device.get(command);
+    }
     throw Error(`Device ${id} not ready: ${device.port.path}`);
   }
 }

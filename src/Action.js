@@ -11,6 +11,7 @@ export class Action {
     this.command = command;
     this.timeout = options.timeout ?? 1000;
     this.answer = '';
+    this.logger = options.logger;
     this.status = STATUS_CREATED;
     this.creationTimestamp = Date.now();
     this.promise = new Promise((resolve, reject) => {
@@ -30,6 +31,7 @@ export class Action {
       (() => {
         throw new Error('endCommandAnswerCallback is not defined');
       });
+    this.logger?.info('Action created');
   }
 
   isFinished() {
@@ -45,8 +47,9 @@ export class Action {
         return;
       }
       this.status = STATUS_ERROR;
-      this.reject(`Timeout, waiting over ${this.timeout}ms`);
       this.finished();
+      this.reject(`Timeout, waiting over ${this.timeout}ms`);
+      this.logger?.error(`Timeout, waiting over ${this.timeout}ms`);
     }, this.timeout);
   }
 
@@ -54,18 +57,19 @@ export class Action {
     this.startTimestamp = Date.now();
     this.status = STATUS_COMMAND_SENT;
     this.setTimeout();
+    return this.promise;
   }
 
   appendAnswer(buffer) {
     let string = new TextDecoder().decode(buffer);
     this.status = STATUS_ANSWER_PARTIALLY_RECEIVED;
     this.answer += string.replace(/\r/g, '');
-    console.log(this.answer);
     if (!this.isEndCommandAnswer(this.command, this.answer)) return;
     // end of command
     this.status = STATUS_ANSWER_RECEIVED;
     this.resolve(this.endCommandAnswerCallback(this.command, this.answer));
     this.finished();
     this.status = STATUS_RESOLVED;
+    this.logger?.info(`Action resolved with: ${this.answer.substring(0, 20)}`);
   }
 }

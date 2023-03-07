@@ -1,5 +1,8 @@
 <html>
   <head>
+    <script src="https://www.lactame.com/lib/fifo-logger/0.3.0/fifo-logger.js"></script>
+    <script src="./logger.js"></script>
+    <script src="./devicesToTable.js"></script>
     <script src="../dist/legoino-navigator-serial.js"></script>
   </head>
   <body>
@@ -12,8 +15,32 @@
 
     <textarea id="result" cols="50" rows="30"></textarea>
     <div id="devices"></div>
+    <div id="logs"></div>
     <script>
-      const devicesManager = new LegoinoSerial.DevicesManager(navigator.serial);
+      const devicesManager = new LegoinoSerial.DevicesManager(
+        navigator.serial,
+        {
+          logger,
+          portFilter: [
+            { usbProductId: 67, usbVendorId: 9025 }, // arduino uno
+            { usbProductId: 37384, usbVendorId: 6991 },
+            { usbProductId: 60000, usbVendorId: 4292 },
+          ],
+          command: {
+            isEndCommandAnswer: (command, answer) => {
+              return answer.endsWith('\n\n');
+            },
+            endCommandAnswerCallback: (command, answer) => {
+              return answer.replace(/\n\n$/, '');
+            },
+          },
+          device: {
+            getID: async (device) => {
+              return device.get('uq');
+            },
+          },
+        },
+      );
       async function doAll() {
         await devicesManager.updateDevices();
         let devices = devicesManager.getDevicesList();
@@ -29,21 +56,8 @@
 
       async function sendCommand() {
         let command = document.getElementById('command').value;
-        let result = await devicesManager.sendCommand('21569', command);
+        let result = await devicesManager.sendCommand('21570', command);
         document.getElementById('result').value = result;
-      }
-
-      function devicesToTable(devices) {
-        let result = '<table border="1">';
-        for (let device of devices) {
-          result += '<tr>';
-          for (let key of Object.keys(device)) {
-            result += '<td>' + device[key] + '</td>';
-          }
-          result += '</tr>';
-        }
-        result += '</table>';
-        return result;
       }
     </script>
   </body>
