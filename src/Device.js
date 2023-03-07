@@ -22,6 +22,16 @@ export class Device {
     this.defaultCommandExpirationDelay = 2000;
     this.encoder = new TextEncoder();
     this.decoder = new TextDecoder();
+    this.isEndCommandAnswer =
+      options.isEndCommandAnswer ??
+      ((command, answer) => {
+        return answer.endsWith('\n\n');
+      });
+    this.endCommandAnswerCallback =
+      options.endCommandAnswerCallback ??
+      ((command, anwwer) => {
+        return answer;
+      });
   }
 
   isReady() {
@@ -94,6 +104,8 @@ export class Device {
 
     const action = new Action(command, {
       timeout: commandExpirationDelay,
+      isEndCommandAnswer: this.isEndCommandAnswer,
+      endCommandAnswerCallback: this.endCommandAnswerCallback,
     });
 
     this.queue.push(action);

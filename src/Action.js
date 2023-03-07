@@ -9,7 +9,7 @@ export class Action {
   constructor(command, options = {}) {
     this.currentTimeout = undefined;
     this.command = command;
-    this.timeout = options.timeout === undefined ? 1000 : options.timeout;
+    this.timeout = options.timeout ?? 1000;
     this.answer = '';
     this.status = STATUS_CREATED;
     this.creationTimestamp = Date.now();
@@ -20,6 +20,16 @@ export class Action {
     this.finishedPromise = new Promise((resolve) => {
       this.finished = resolve;
     });
+    this.isEndCommandAnswer =
+      options.isEndCommandAnswer ??
+      (() => {
+        throw new Error('isEndCommandAnswer is not defined');
+      });
+    this.endCommandAnswerCallback =
+      options.endCommandAnswerCallback ??
+      (() => {
+        throw new Error('endCommandAnswerCallback is not defined');
+      });
   }
 
   isFinished() {
@@ -50,14 +60,12 @@ export class Action {
     let string = new TextDecoder().decode(buffer);
     this.status = STATUS_ANSWER_PARTIALLY_RECEIVED;
     this.answer += string.replace(/\r/g, '');
-    if (!this.answer.endsWith('\n\n') && this.answer !== '\n') return;
-    let lines = this.answer.split(/\n/);
-    if (lines.length > 0 && lines[lines.length - 1] === '') {
-      lines = lines.filter((line) => line);
-      this.status = STATUS_ANSWER_RECEIVED;
-      this.resolve(lines.join('\n'));
-      this.finished();
-      this.status = STATUS_RESOLVED;
-    }
+    console.log(this.answer);
+    if (!this.isEndCommandAnswer(this.command, this.answer)) return;
+    // end of command
+    this.status = STATUS_ANSWER_RECEIVED;
+    this.resolve(this.endCommandAnswerCallback(this.command, this.answer));
+    this.finished();
+    this.status = STATUS_RESOLVED;
   }
 }
