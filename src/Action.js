@@ -18,9 +18,6 @@ export class Action {
       this.reject = reject;
       this.resolve = resolve;
     });
-    this.finishedPromise = new Promise((resolve) => {
-      this.finished = resolve;
-    });
     this.isEndCommandAnswer =
       options.isEndCommandAnswer ??
       (() => {
@@ -39,24 +36,35 @@ export class Action {
   }
 
   setTimeout() {
+    console.log({ currentTimeout: this.currentTimeout, timeout: this.timeout });
     if (this.currentTimeout) {
       clearTimeout(this.currentTimeout);
     }
     this.currentTimeout = setTimeout(() => {
+      console.log(this.status);
       if (this.status === STATUS_RESOLVED || this.status === STATUS_ERROR) {
         return;
       }
       this.status = STATUS_ERROR;
-      this.finished();
       this.reject(`Timeout, waiting over ${this.timeout}ms`);
       this.logger?.error(`Timeout, waiting over ${this.timeout}ms`);
     }, this.timeout);
   }
 
-  start() {
+  async writeRead(device) {
     this.startTimestamp = Date.now();
     this.status = STATUS_COMMAND_SENT;
     this.setTimeout();
+    console.log('write');
+    device
+      .write(`${this.command}`)
+      .then(() => {
+        console.log('read');
+        return device.read(this);
+      })
+      .then(() => {
+        this.resolve('ok');
+      });
     return this.promise;
   }
 
@@ -68,7 +76,6 @@ export class Action {
     // end of command
     this.status = STATUS_ANSWER_RECEIVED;
     this.resolve(this.endCommandAnswerCallback(this.command, this.answer));
-    this.finished();
     this.status = STATUS_RESOLVED;
     this.logger?.info(`Action resolved with: ${this.answer.substring(0, 20)}`);
   }

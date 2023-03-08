@@ -65,13 +65,15 @@ export class Device {
       this.action = this.queue.shift();
       console.log(this.queue);
       if (this.action) {
-        this.action.start();
-        console.log('write');
-        await this.write(`${this.action.command}`); // todo add \n for Legoino
-        console.log('read');
-        await this.read(this.action);
-        console.log('finishedPromise');
-        await this.action.finishedPromise;
+        await this.action
+          .writeRead(this)
+          .then((value) => {
+            console.log('RESOLVE', value);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+
         this.action = undefined;
         await delay(this.interCommandDelay);
       }
@@ -154,15 +156,19 @@ export class Device {
     this.setStatus(STATUS_CLOSED);
   }
 
-  async write(data) {
-    const dataArrayBuffer = encoder.encode(`${data}\n`);
+  async write(command) {
+    const dataArrayBuffer = encoder.encode(`${command}\n`);
     return this.writer.write(dataArrayBuffer);
   }
 
   async read(action) {
     while (!action.isFinished()) {
-      action.appendAnswer((await this.reader.read()).value);
+      const chunk = await this.reader.read();
+      action.appendAnswer(chunk.value);
       await delay(10);
     }
+    console.log('-----------');
+    console.log(action.answer);
+    console.log('-----------');
   }
 }

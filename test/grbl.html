@@ -8,21 +8,28 @@
   </head>
   <body>
     <div>
-      <button onclick="devicesManager.updateDevices()">updateDevices</button>
-      <button onclick="devicesManager.requestDevices()">requestDevices</button>
-      <input type="text" value="$" id="command" />
-      <button onclick="sendCommand(getElementById('command').value)">
-        sendCommand
-      </button>
-
-      <button onclick="sendCommand(String.fromCharCode(0x18))">ctrl-x</button>
-      <button onclick="sendCommand('=')">? Status</button>
-      <button onclick="sendCommand('~')">~ cycle start/resume</button>
-      <button onclick="sendCommand('!')">! Feed hold</button>
-      <button onclick="sendCommand('G0 X0 Y0 Z0')">G0 X0 Y0 Z0</button>
-      <button onclick="sendCommand('G0 X100 Y0 Z0')">G0 X100 Y0 Z0</button>
-      <button onclick="sendCommand('G0 X0 Y100 Z0')">G0 X0 Y100 Z0</button>
-      <button onclick="sendCommand('G0 X0 Y0 Z100')">G0 X0 Y0 Z100</button>
+      <p>
+        <button onclick="devicesManager.updateDevices()">updateDevices</button>
+        <button onclick="devicesManager.requestDevices()">
+          requestDevices
+        </button>
+        <input type="text" value="$" id="command" />
+        <button onclick="sendCommand(getElementById('command').value)">
+          sendCommand
+        </button>
+      </p>
+      <p>
+        <button onclick="sendCommand(String.fromCharCode(0x18))">ctrl-x</button>
+        <button onclick="sendCommand('=')">? Status</button>
+        <button onclick="sendCommand('~')">~ cycle start/resume</button>
+        <button onclick="sendCommand('!')">! Feed hold</button>
+      </p>
+      <p>
+        <button onclick="sendCommand('G0 X0 Y0 Z0')">G0 X0 Y0 Z0</button>
+        <button onclick="sendCommand('G0 X100 Y0 Z0')">G0 X100 Y0 Z0</button>
+        <button onclick="sendCommand('G0 X0 Y100 Z0')">G0 X0 Y100 Z0</button>
+        <button onclick="sendCommand('G0 X0 Y0 Z100')">G0 X0 Y0 Z100</button>
+      </p>
     </div>
 
     <div style="display: flex; flex-direction: row" ;>
@@ -50,7 +57,8 @@
             },
           },
           device: {
-            interCommandDelay: 50,
+            interCommandDelay: 500,
+            timeout: 2000,
           },
         },
       );
@@ -68,8 +76,8 @@
         window.setTimeout(() => {
           window.setInterval(async () => {
             await sendCommand('?', { showRaw: false });
-          }, 250);
-        }, 5);
+          }, 500);
+        }, 50);
       }
       doAll();
 
