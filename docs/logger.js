@@ -1,6 +1,8 @@
 const logger = new FifoLogger.FifoLogger({
+  level: 'warn',
+  limit: 10,
   onChange: (log, logs) => {
-    const allLogs = logger.getLogs({ includeChildren: true, level: 'warn' });
+    const allLogs = logger.getLogs({ includeChildren: true });
     document.getElementById('logs').innerHTML = `<table><tr>
         <th>Kind</th>
         <th>usbVendorId</th>

@@ -61,9 +61,12 @@ export class Action {
     await this.setTimeout();
     this.writeText(this.command)
       .then(async () => {
-        const response = await this.readText();
+        await this.readText();
         this.status = STATUS_ANSWER_RECEIVED;
-        this.answer = this.endCommandAnswerCallback(this.command, response);
+        this.answer = this.endCommandAnswerCallback(
+          this.command,
+          this.partialAnswer,
+        );
       })
       .then(() => {
         this.status = STATUS_RESOLVED;
@@ -78,15 +81,16 @@ export class Action {
   }
 
   async readText() {
-    let result = '';
     this.status = STATUS_ANSWER_PARTIALLY_RECEIVED;
     while (this.status === STATUS_ANSWER_PARTIALLY_RECEIVED) {
       const chunk = await this.device.reader.read();
-      result += decoder.decode(chunk.value);
-      this.partialAnswer = result;
-      if (this.isEndCommandAnswer(this.command, result)) break;
+      if (chunk.value.length > 0) {
+        // as long as we receive, we delay the timeout
+        this.setTimeout();
+      }
+      this.partialAnswer += decoder.decode(chunk.value);
+      if (this.isEndCommandAnswer(this.command, this.partialAnswer)) break;
       await delay(1);
     }
-    return result;
   }
 }

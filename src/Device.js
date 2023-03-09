@@ -66,12 +66,18 @@ export class Device {
           .writeRead()
           .then((value) => {
             this.logger?.info(
-              { command: this.action.command, response: this.action.response },
+              { command: this.action.command, answer: this.action.answer },
               'Resolve writeRead command',
             );
           })
           .catch((error) => {
-            console.log(error);
+            this.logger?.error(
+              {
+                command: this.action.command,
+                answer: this.action.partialAnswer,
+              },
+              error.toString(),
+            );
           });
 
         this.action = undefined;
