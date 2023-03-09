@@ -1,6 +1,6 @@
 <html>
   <head>
-    <script src="https://www.lactame.com/lib/fifo-logger/0.3.0/fifo-logger.js"></script>
+    <script src="./fifo-logger.js"></script>
     <script src="./logger.js"></script>
     <script src="./devicesToTable.js"></script>
     <script src="./grbl.js"></script>
@@ -50,15 +50,17 @@
           ],
           command: {
             isEndCommandAnswer: (command, answer) => {
-              return answer.match('ok\n') || answer.match('error: (.*)\n');
+              return (
+                answer.match(/ok([.\r]*)\n/gm) || answer.match(/error: (.*)\n/)
+              );
             },
             endCommandAnswerCallback: (command, answer) => {
               return answer;
             },
           },
           device: {
-            interCommandDelay: 500,
-            timeout: 2000,
+            interCommandDelay: 50,
+            timeout: 100,
           },
         },
       );
@@ -76,7 +78,7 @@
         window.setTimeout(() => {
           window.setInterval(async () => {
             await sendCommand('?', { showRaw: false });
-          }, 500);
+          }, 200);
         }, 50);
       }
       doAll();

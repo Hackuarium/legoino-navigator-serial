@@ -15,8 +15,6 @@ const statusLabels = {
   [STATUS_ERROR]: 'error',
 };
 
-const encoder = new TextEncoder();
-
 export class Device {
   constructor(serialPort, options = {}) {
     const { commandOptions = {}, deviceOptions = {} } = options;
@@ -63,12 +61,14 @@ export class Device {
   async runProcessQueue() {
     while (this.queue.length > 0) {
       this.action = this.queue.shift();
-      console.log(this.queue);
       if (this.action) {
         await this.action
-          .writeRead(this)
+          .writeRead()
           .then((value) => {
-            console.log('RESOLVE', value);
+            this.logger?.info(
+              { command: this.action.command, response: this.action.response },
+              'Resolve writeRead command',
+            );
           })
           .catch((error) => {
             console.log(error);
@@ -129,7 +129,7 @@ export class Device {
   async get(command, options = {}) {
     const { timeout = this.timeout } = options;
 
-    const action = new Action(command, {
+    const action = new Action(command, this, {
       ...this.commandOptions,
       timeout,
       logger: this.logger.child({ kind: 'Command', command }),
@@ -154,21 +154,5 @@ export class Device {
   close() {
     this.logger?.info(`Close`);
     this.setStatus(STATUS_CLOSED);
-  }
-
-  async write(command) {
-    const dataArrayBuffer = encoder.encode(`${command}\n`);
-    return this.writer.write(dataArrayBuffer);
-  }
-
-  async read(action) {
-    while (!action.isFinished()) {
-      const chunk = await this.reader.read();
-      action.appendAnswer(chunk.value);
-      await delay(10);
-    }
-    console.log('-----------');
-    console.log(action.answer);
-    console.log('-----------');
   }
 }
