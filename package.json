@@ -13,7 +13,6 @@
   },
   "scripts": {
     "build": "cheminfo-build --entry src/index.js --root LegoinoSerial",
-    "docs": "cheminfo-build --entry src/index.js --root LegoinoSerial --out docs",
     "dev": "npm-watch",
     "eslint": "eslint src",
     "eslint-fix": "npm run eslint -- --fix",
