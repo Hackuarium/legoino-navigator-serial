@@ -1,3 +1,5 @@
+import delay from 'delay';
+
 const STATUS_CREATED = 0;
 const STATUS_COMMAND_SENT = 1;
 const STATUS_ANSWER_PARTIALLY_RECEIVED = 2;
@@ -5,21 +7,34 @@ const STATUS_ANSWER_RECEIVED = 3;
 const STATUS_RESOLVED = 4;
 const STATUS_ERROR = 5;
 
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 export class Action {
-  constructor(command, options = {}) {
+  constructor(command, device, options = {}) {
+    this.device = device;
     this.currentTimeout = undefined;
     this.command = command;
-    this.timeout = options.timeout === undefined ? 1000 : options.timeout;
+    this.timeout = options.timeout ?? 1000;
     this.answer = '';
+    this.partialAnswer = '';
+    this.logger = options.logger;
     this.status = STATUS_CREATED;
     this.creationTimestamp = Date.now();
     this.promise = new Promise((resolve, reject) => {
       this.reject = reject;
       this.resolve = resolve;
     });
-    this.finishedPromise = new Promise((resolve) => {
-      this.finished = resolve;
-    });
+    this.isEndCommandAnswer =
+      options.isEndCommandAnswer ??
+      (() => {
+        throw new Error('isEndCommandAnswer is not defined');
+      });
+    this.endCommandAnswerCallback =
+      options.endCommandAnswerCallback ??
+      (() => {
+        throw new Error('endCommandAnswerCallback is not defined');
+      });
+    this.logger?.info('Action created');
   }
 
   isFinished() {
@@ -36,28 +51,46 @@ export class Action {
       }
       this.status = STATUS_ERROR;
       this.reject(`Timeout, waiting over ${this.timeout}ms`);
-      this.finished();
+      this.logger?.error(`Timeout, waiting over ${this.timeout}ms`);
     }, this.timeout);
   }
 
-  start() {
+  async writeRead() {
     this.startTimestamp = Date.now();
     this.status = STATUS_COMMAND_SENT;
-    this.setTimeout();
+    await this.setTimeout();
+    this.writeText(this.command)
+      .then(async () => {
+        await this.readText();
+        this.status = STATUS_ANSWER_RECEIVED;
+        this.answer = this.endCommandAnswerCallback(
+          this.command,
+          this.partialAnswer,
+        );
+      })
+      .then(() => {
+        this.status = STATUS_RESOLVED;
+        this.resolve(this.answer);
+      });
+    return this.promise;
   }
 
-  appendAnswer(buffer) {
-    let string = new TextDecoder().decode(buffer);
+  async writeText(command) {
+    const dataArrayBuffer = encoder.encode(`${command}\n`);
+    return this.device.writer.write(dataArrayBuffer);
+  }
+
+  async readText() {
     this.status = STATUS_ANSWER_PARTIALLY_RECEIVED;
-    this.answer += string.replace(/\r/g, '');
-    if (!this.answer.endsWith('\n\n') && this.answer !== '\n') return;
-    let lines = this.answer.split(/\n/);
-    if (lines.length > 0 && lines[lines.length - 1] === '') {
-      lines = lines.filter((line) => line);
-      this.status = STATUS_ANSWER_RECEIVED;
-      this.resolve(lines.join('\n'));
-      this.finished();
-      this.status = STATUS_RESOLVED;
+    while (this.status === STATUS_ANSWER_PARTIALLY_RECEIVED) {
+      const chunk = await this.device.reader.read();
+      if (chunk.value.length > 0) {
+        // as long as we receive, we delay the timeout
+        this.setTimeout();
+      }
+      this.partialAnswer += decoder.decode(chunk.value);
+      if (this.isEndCommandAnswer(this.command, this.partialAnswer)) break;
+      await delay(1);
     }
   }
 }
