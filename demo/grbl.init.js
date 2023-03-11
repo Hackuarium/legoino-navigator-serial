@@ -1,4 +1,11 @@
-const status = { status: '', info: {}, settings: {} };
+const status = {
+  message: '',
+  info: {},
+  settings: {},
+  parameters: {},
+  error: {},
+  version: '',
+};
 
 const terminal = new LegoinoSerial.Terminal({
   onChange: (newEvents, allEvents) => {
@@ -50,7 +57,7 @@ async function doAll() {
   if (false) {
     window.setInterval(async () => {
       const result = await sendCommand('', {
-        timeout: 5,
+        timeout: 20,
         timeoutResolve: true,
       });
       console.log(result);
@@ -65,13 +72,24 @@ async function doAll() {
 doAll();
 
 async function sendCommand(command, options = {}) {
-  let result = await devicesManager.sendCommand('9025-67', command, options);
-  const parsed = parse(command, result);
-  if (command === '?') {
-    status.status = parsed.status;
-    status.info = { ...status.info, ...parsed.info };
-    document.getElementById('status').innerHTML = `
-      <h2>Status: ${status.status}</h2>
+  await devicesManager
+    .sendCommand('9025-67', command, options)
+    .then((result) => {
+      LegoinoSerial.GRBL.updateStatus(result, status);
+    })
+    .catch((e) => {
+      LegoinoSerial.GRBL.updateStatus(e, status);
+    });
+  updateScreen();
+}
+
+function updateScreen() {
+  console.log(status.error);
+  document.getElementById('error').innerHTML = status.error.code
+    ? `${status.error.code}: ${status.error.description}`
+    : '';
+  document.getElementById('status').innerHTML = `
+      <h2>${status.message}</h2>
       <h3>X: ${status.info?.MPos?.[0]}</h3>
       <h3>Y: ${status.info?.MPos?.[1]}</h3>
       <h3>Z: ${status.info?.MPos?.[2]}</h3>
@@ -79,16 +97,17 @@ async function sendCommand(command, options = {}) {
       Ov: ${status.info.Ov}<br/>
       WCO: ${status.info.Ov}<br/>
    `;
-  }
-  if (command === '$$') {
-    document.getElementById('settings').innerHTML = `
+
+  document.getElementById('settings').innerHTML = `
       <table>
         <tr>
           <th>Key</th>
           <th>Value</th>
           <th>Description</th>
         </tr>
-        ${parsed
+        ${Object.keys(status.settings)
+          .sort((a, b) => Number(a.substring(1)) - Number(b.substring(1)))
+          .map((key) => status.settings[key])
           .map(
             (setting) =>
               `
@@ -102,5 +121,28 @@ async function sendCommand(command, options = {}) {
           .join('')}
       </table>
 `;
-  }
+
+  document.getElementById('parameters').innerHTML = `
+<table>
+  <tr>
+    <th>Key</th>
+    <th>Value</th>
+    <th>Description</th>
+  </tr>
+  ${Object.keys(status.parameters)
+    .sort()
+    .map((key) => status.parameters[key])
+    .map(
+      (parameter) =>
+        `
+  <tr>
+    <td>${parameter.key}</td>
+    <td>${parameter.value}</td>
+    <td>${parameter.description}</td>
+    </tr>
+  `,
+    )
+    .join('')}
+</table>
+`;
 }

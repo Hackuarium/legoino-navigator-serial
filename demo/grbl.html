@@ -3,35 +3,44 @@
     <script src="./fifo-logger.js"></script>
     <script src="./logger.js"></script>
     <script src="./devicesToTable.js"></script>
-    <script src="./grbl.js"></script>
     <script src="../dist/legoino-navigator-serial.js"></script>
   </head>
   <body>
-    <div>
-      <p>
-        <button onclick="devicesManager.updateDevices()">updateDevices</button>
-        <button onclick="devicesManager.requestDevices()">
-          requestDevices
-        </button>
-        <input
-          type="text"
-          value=""
-          id="command"
-          onkeypress="checkEnter(event)"
-        />
-        <button onclick="sendCommand(document.getElementById('command').value)">
-          sendCommand
-        </button>
-        <script>
-          function checkEnter(event) {
-            if (event.keyCode === 13 || event.keyCode === 10) {
-              const command = document.getElementById('command');
-              sendCommand(command.value);
-              command.value = '';
+    <div style="display: flex; flex-direction: row">
+      <div>
+        <p>
+          <button onclick="devicesManager.updateDevices()">
+            updateDevices
+          </button>
+          <button onclick="devicesManager.requestDevices()">
+            requestDevices
+          </button>
+          <input
+            type="text"
+            value=""
+            id="command"
+            onkeypress="checkEnter(event)"
+          />
+          <button
+            onclick="sendCommand(document.getElementById('command').value)"
+          >
+            sendCommand
+          </button>
+          <script>
+            function checkEnter(event) {
+              if (event.keyCode === 13 || event.keyCode === 10) {
+                const command = document.getElementById('command');
+                sendCommand(command.value);
+                command.value = '';
+              }
             }
-          }
-        </script>
-      </p>
+          </script>
+        </p>
+      </div>
+      <div id="error">
+
+      </div>
+      </div>
       <div style="display: flex; flex-direction: row">
         <div>
           <p>
@@ -130,14 +139,18 @@
           flex-direction: column-reverse;
         "
       ></div>
-      <div
-        style="background-color: lightyellow; overflow: auto; height: 400px"
-        id="status"
-      ></div>
-      <div
-        style="background-color: pink; overflow: auto; height: 400px"
-        id="settings"
-      ></div>
+      <div style="background-color: lightyellow; overflow: auto; height: 400px">
+        <h2>Status</h2>
+        <div id="status"></div>
+      </div>
+      <div style="background-color: pink; overflow: auto; height: 400px">
+        <h2>Settings</h2>
+        <div id="settings"></div>
+      </div>
+      <div style="background-color: lightblue; overflow: auto; height: 400px">
+        <h2>Parameters</h2>
+        <div id="parameters"></div>
+      </div>
     </div>
     <div style="display: flex; flex-direction: row">
       <div id="devices"></div>
