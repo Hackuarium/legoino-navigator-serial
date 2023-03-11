@@ -1,11 +1,12 @@
 import delay from 'delay';
 
 const STATUS_CREATED = 0;
-const STATUS_COMMAND_SENT = 1;
-const STATUS_ANSWER_PARTIALLY_RECEIVED = 2;
-const STATUS_ANSWER_RECEIVED = 3;
-const STATUS_RESOLVED = 4;
-const STATUS_ERROR = 5;
+const STATUS_COMMAND_SENT = 10;
+const STATUS_WAITING_RECEIVING = 20;
+const STATUS_ANSWER_PARTIALLY_RECEIVED = 30;
+const STATUS_ANSWER_RECEIVED = 40;
+const STATUS_RESOLVED = 50;
+const STATUS_ERROR = 60;
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -14,7 +15,9 @@ export class Action {
     this.device = device;
     this.currentTimeout = undefined;
     this.command = command;
-    this.timeout = options.timeout ?? 1000;
+    this.timeout = options.timeout ?? 100;
+    this.timeoutResolve = options.timeoutResolve ?? false;
+    this.kind = options.kind ?? 'writeRead';
     this.answer = '';
     this.partialAnswer = '';
     this.logger = options.logger;
@@ -49,9 +52,17 @@ export class Action {
       if (this.status === STATUS_RESOLVED || this.status === STATUS_ERROR) {
         return;
       }
-      this.status = STATUS_ERROR;
-      this.reject(`Timeout, waiting over ${this.timeout}ms`);
-      this.logger?.error(`Timeout, waiting over ${this.timeout}ms`);
+      if (this.timeoutResolve) {
+        this.status = STATUS_RESOLVED;
+        this.resolve(this.partialAnswer);
+        this.device.terminal?.receive(this.partialAnswer);
+        this.logger?.info(`Timeout resolved after ${this.timeout}ms`);
+      } else {
+        this.status = STATUS_ERROR;
+        this.reject(this.partialAnswer);
+        this.device.terminal?.receive(this.partialAnswer);
+        this.logger?.error(`Timeout reject after ${this.timeout}ms`);
+      }
     }, this.timeout);
   }
 
@@ -76,7 +87,9 @@ export class Action {
   }
 
   async writeText(command) {
+    if (!command) return;
     const dataArrayBuffer = encoder.encode(`${command}\n`);
+    this.device.terminal?.send(command);
     return this.device.writer.write(dataArrayBuffer);
   }
 
@@ -92,5 +105,6 @@ export class Action {
       if (this.isEndCommandAnswer(this.command, this.partialAnswer)) break;
       await delay(1);
     }
+    this.device.terminal?.receive(this.partialAnswer);
   }
 }

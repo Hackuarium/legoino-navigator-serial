@@ -19,6 +19,7 @@ export class Device {
   constructor(serialPort, options = {}) {
     const { commandOptions = {}, deviceOptions = {} } = options;
     this.logger = options.logger;
+    this.terminal = options.terminal;
     this.setStatus(STATUS_OPENING);
     this.id = undefined;
     this.serialPort = serialPort;
@@ -133,11 +134,12 @@ export class Device {
    We need to add this command in the queue and wait it resolves or rejects
   */
   async get(command, options = {}) {
-    const { timeout = this.timeout } = options;
+    const { timeout = this.timeout, timeoutResolve = false } = options;
 
     const action = new Action(command, this, {
       ...this.commandOptions,
       timeout,
+      timeoutResolve,
       logger: this.logger.child({ kind: 'Command', command }),
     });
 

@@ -53,10 +53,11 @@
     "jest": "^29.5.0",
     "npm-watch": "^0.11.0",
     "prettier": "^2.8.4",
-    "rollup": "^3.18.0"
+    "rollup": "^3.19.0"
   },
   "dependencies": {
+    "@lukeed/uuid": "^2.0.0",
     "delay": "^5.0.0",
-    "fifo-logger": "^0.5.0"
+    "fifo-logger": "^0.5.3"
   }
 }

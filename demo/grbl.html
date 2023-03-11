@@ -45,7 +45,7 @@
             <button onclick="sendCommand(String.fromCharCode(0x18))">
               ctrl-x
             </button>
-            <button onclick="sendCommand('=')">? Status</button>
+            <button onclick="sendCommand('?')">? Status</button>
             <button onclick="sendCommand('~')">~ cycle start/resume</button>
             <button onclick="sendCommand('!')">! Feed hold</button>
           </p>
@@ -117,104 +117,32 @@
     </div>
 
     <div style="display: flex; flex-direction: row" ;>
-      <textarea id="result" cols="50" rows="30"></textarea>
-      <div style="background-color: lightyellow" id="status"></div>
-      <div style="background-color: pink" id="settings"></div>
+      <div
+        id="terminal"
+        style="
+          background-color: black;
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 14px;
+          overflow: auto;
+          height: 300px;
+          width: 700px;
+          display: flex;
+          flex-direction: column-reverse;
+        "
+      ></div>
+      <div
+        style="background-color: lightyellow; overflow: auto; height: 400px"
+        id="status"
+      ></div>
+      <div
+        style="background-color: pink; overflow: auto; height: 400px"
+        id="settings"
+      ></div>
     </div>
-    <div id="devices"></div>
-    <div id="logs"></div>
-    <script>
-      const devicesManager = new LegoinoSerial.DevicesManager(
-        navigator.serial,
-        {
-          logger,
-          portFilter: [
-            { usbProductId: 67, usbVendorId: 9025 }, // arduino uno
-            { usbProductId: 37384, usbVendorId: 6991 },
-            { usbProductId: 60000, usbVendorId: 4292 },
-          ],
-          command: {
-            isEndCommandAnswer: (command, answer) => {
-              return (
-                answer.match(/ok([.\r]*)\n/gm) || answer.match(/error: (.*)\n/)
-              );
-            },
-            endCommandAnswerCallback: (command, answer) => {
-              return answer;
-            },
-          },
-          device: {
-            interCommandDelay: 50,
-            timeout: 100,
-          },
-        },
-      );
-      async function doAll() {
-        await devicesManager.updateDevices();
-        let devices = devicesManager.getDevicesList();
-
-        devicesManager.continuousUpdateDevices({
-          callback: (devices) => {
-            const table = devicesToTable(devices);
-            document.getElementById('devices').innerHTML = table;
-          },
-        });
-
-        window.setInterval(async () => {
-          await sendCommand('?', { showRaw: false });
-        }, 250);
-
-        window.setTimeout(async () => {
-          await sendCommand('$$', { showRaw: false });
-        }, 5000);
-      }
-      doAll();
-
-      let status = { status: '', info: {} };
-      async function sendCommand(command, options = {}) {
-        const { showRaw = true } = options;
-        let result = await devicesManager.sendCommand('9025-67', command);
-        const parsed = parse(command, result);
-        if (command === '?') {
-          status.status = parsed.status;
-          status.info = { ...status.info, ...parsed.info };
-          document.getElementById('status').innerHTML = `
-            <h2>Status: ${status.status}</h2>
-            <h3>X: ${status.info?.MPos?.[0]}</h3>
-            <h3>Y: ${status.info?.MPos?.[1]}</h3>
-            <h3>Z: ${status.info?.MPos?.[2]}</h3>
-            FS: ${status.info.FS}<br/>
-            Ov: ${status.info.Ov}<br/>
-            WCO: ${status.info.Ov}<br/>
-         `;
-        }
-        if (command === '$$') {
-          document.getElementById('settings').innerHTML = `
-            <table>
-              <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Description</th>
-              </tr>
-              ${parsed
-                .map(
-                  (setting) =>
-                    `
-              <tr>
-                <td>${setting.key}</td>
-                <td>${setting.value}</td>
-                <td>${setting.description}</td>
-                </tr>
-              `,
-                )
-                .join('')}
-            </table>
-  `;
-        }
-        if (showRaw) {
-          document.getElementById('result').value = result;
-        }
-      }
-    </script>
+    <div style="display: flex; flex-direction: row">
+      <div id="devices"></div>
+      <div id="logs"></div>
+    </div>
+    <script src="./grbl.init.js"></script>
   </body>
 </html>

@@ -1,1 +1,2 @@
-export * from './DevicesManager';
+export * from './DevicesManager.js';
+export * from './terminal/Terminal.js';

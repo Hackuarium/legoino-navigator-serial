@@ -22,6 +22,7 @@ export class DevicesManager extends EventEmitter {
     super();
     checkSerial(serial);
     this.serial = serial;
+    this.terminal = options.terminal;
     this.logger = options.logger;
     this.devices = [];
     this.portFilter = options.portFilter;
@@ -66,6 +67,7 @@ export class DevicesManager extends EventEmitter {
         const serialPortInfo = serialPort.getInfo();
         let newDevice = new Device(serialPort, {
           baudRate: this.baudRate,
+          terminal: this.terminal,
           ...serialPortInfo,
           commandOptions: this.commandOptions,
           deviceOptions: this.deviceOptions,
@@ -133,14 +135,17 @@ export class DevicesManager extends EventEmitter {
    * Send a serial command to a device.
    * @param {number} id ID of the device
    * @param {string} command Command to send
+   * @param {object} [options={}] options
+   * @param {number} [options.timeout] Timeout in [ms]
+   * @param {number} [options.timeoutResolve=false] If `true` the promise will resolve even if the command timed out
    */
-  async sendCommand(id, command) {
+  async sendCommand(id, command, options = {}) {
     const device = this.findDevice(id);
     if (!device) {
       throw Error(`Device ${id} not found`);
     }
     if (device && device.isReady()) {
-      return device.get(command);
+      return device.get(command, options);
     }
     throw Error(`Device ${id} not ready: ${device.port.path}`);
   }

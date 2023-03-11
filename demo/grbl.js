@@ -17,6 +17,7 @@ function parse(command, input) {
 }
 
 function parseSettings(input) {
+  console.log(input);
   const settings = [];
   for (const line of input.lines.filter((line) => line.startsWith('$'))) {
     const [key, value] = line.split('=');

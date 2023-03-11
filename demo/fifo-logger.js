@@ -1,6 +1,6 @@
 /**
  * fifo-logger - Simple event logger for the browser and node.js
- * @version v0.5.2
+ * @version v0.5.3
  * @link https://github.com/cheminfo/fifo-logger#readme
  * @license MIT
  */
@@ -176,13 +176,13 @@
       event.meta = {
         ...logger.bindings,
       };
-    } else if (message && typeof value === 'object') {
+    } else if (message !== undefined && typeof value === 'object') {
       event.message = message;
       event.meta = {
         ...logger.bindings,
         ...value,
       };
-    } else if (!message && typeof value === 'string') {
+    } else if (message === undefined && typeof value === 'string') {
       event.message = value;
       event.meta = {
         ...logger.bindings,
