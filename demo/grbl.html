@@ -5,13 +5,10 @@
     <script src="./devicesToTable.js"></script>
     <script src="../dist/legoino-navigator-serial.js"></script>
   </head>
-  <body>
+  <body style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif">
     <div style="display: flex; flex-direction: row">
       <div>
         <p>
-          <button onclick="devicesManager.updateDevices()">
-            updateDevices
-          </button>
           <button onclick="devicesManager.requestDevices()">
             requestDevices
           </button>
@@ -37,91 +34,101 @@
           </script>
         </p>
       </div>
-      <div id="error">
-
-      </div>
+      <div
+        id="messages"
+        style="
+          background-color: lightgrey;
+          height: 100px;
+          width: 500px;
+          display: flex;
+          flex-direction: column-reverse;
+        "
+      ></div>
       </div>
       <div style="display: flex; flex-direction: row">
-        <div>
-          <p>
-            <button onclick="sendCommand('$$')">Print settings</button>
-            <button onclick="sendCommand('$#')">Print parameters</button>
-            <button onclick="sendCommand('~')">~ cycle start/resume</button>
-            <button onclick="sendCommand('!')">! Feed hold</button>
-          </p>
-
-          <p>
+        <div style="display: flex; flex-direction: column">
             <button onclick="sendCommand(String.fromCharCode(0x18))">
               ctrl-x
             </button>
+            <button onclick="sendCommand('$')">$ Help</button>
+            <button onclick="sendCommand('$I')">$I Version info</button>
             <button onclick="sendCommand('?')">? Status</button>
             <button onclick="sendCommand('~')">~ cycle start/resume</button>
             <button onclick="sendCommand('!')">! Feed hold</button>
-          </p>
-          <p>
-            <button onclick="sendCommand('G0 X0 Y0 Z0')">G0 X0 Y0 Z0</button>
-            <button onclick="sendCommand('G0 X100 Y0 Z0')">
-              G0 X100 Y0 Z0
-            </button>
-            <button onclick="sendCommand('G0 X0 Y100 Z0')">
-              G0 X0 Y100 Z0
-            </button>
-            <button onclick="sendCommand('G0 X0 Y0 Z100')">
-              G0 X0 Y0 Z100
-            </button>
-          </p>
+
         </div>
         <div style="background-color: lightgreen">
-          <h2>Command</h2>
+          <h2>Manual control</h2>
           <p>
             X:
-            <button onclick="sendCommand('X'+(status.info.MPos[0]-100))">
+            <button onclick="sendCommand('X'+(state.status.MPos[0]-100))">
               -100
             </button>
-            <button onclick="sendCommand('X'+(status.info.MPos[0]-10))">
+            <button onclick="sendCommand('X'+(state.status.MPos[0]-10))">
               -10
             </button>
-            <button onclick="sendCommand('X0')">Home</button>
-            <button onclick="sendCommand('X'+(status.info.MPos[0]+10))">
+            <button onclick="sendCommand('X0')">0</button>
+            <button onclick="sendCommand('X'+(state.status.MPos[0]+10))">
               +10
             </button>
-            <button onclick="sendCommand('X'+(status.info.MPos[0]+100))">
+            <button onclick="sendCommand('X'+(state.status.MPos[0]+100))">
               +100
             </button>
           </p>
           <p>
             Y:
-            <button onclick="sendCommand('Y'+(status.info.MPos[1]-100))">
+            <button onclick="sendCommand('Y'+(state.status.MPos[1]-100))">
               -100
             </button>
-            <button onclick="sendCommand('Y'+(status.info.MPos[1]-10))">
+            <button onclick="sendCommand('Y'+(state.status.MPos[1]-10))">
               -10
             </button>
-            <button onclick="sendCommand('Y0')">Home</button>
-            <button onclick="sendCommand('Y'+(status.info.MPos[1]+10))">
+            <button onclick="sendCommand('Y0')">0</button>
+            <button onclick="sendCommand('Y'+(state.status.MPos[1]+10))">
               +10
             </button>
-            <button onclick="sendCommand('Y'+(status.info.MPos[1]+100))">
+            <button onclick="sendCommand('Y'+(state.status.MPos[1]+100))">
               +100
             </button>
           </p>
           <p>
             Z:
-            <button onclick="sendCommand('Z'+(status.info.MPos[2]-100))">
+            <button onclick="sendCommand('Z'+(state.status.MPos[2]-100))">
               -100
             </button>
-            <button onclick="sendCommand('Z'+(status.info.MPos[2]-10))">
+            <button onclick="sendCommand('Z'+(state.status.MPos[2]-10))">
               -10
             </button>
-            <button onclick="sendCommand('Z0')">Home</button>
-            <button onclick="sendCommand('Z'+(status.info.MPos[2]+10))">
+            <button onclick="sendCommand('Z0')">0</button>
+            <button onclick="sendCommand('Z'+(state.status.MPos[2]+10))">
               +10
             </button>
-            <button onclick="sendCommand('Z'+(status.info.MPos[2]+100))">
+            <button onclick="sendCommand('Z'+(state.status.MPos[2]+100))">
               +100
             </button>
           </p>
         </div>
+        <div style="background-color: lightyellow; overflow: auto; height: 250px">
+          <div style="text-align: center; font-size: 1.2em">Status
+            <span style="cursor: pointer;" title="Send ? command"  onclick="sendCommand('?')">⟳</span>
+          </div>
+              <button onclick="sendCommand('$H')">$H Home</button>
+              <button onclick="sendCommand('$X')">$X Unlock</button>
+          <div id="state"></div>
+        </div>
+        <div style="background-color: lightcyan">
+          <h2>GCODE
+            <button onclick="sendCommand('$G')">$G Gcode status</button>
+          </h2>
+          <textarea cols="30" rows="10" id="gcode">X100
+Y100
+Z100
+X0
+Y0
+Z0
+</textarea>
+          <button onclick="sendGcode(document.getElementById('gcode').value)">Send GCODE</button>
+          </div>
       </div>
     </div>
 
@@ -130,7 +137,7 @@
         id="terminal"
         style="
           background-color: black;
-          font-family: 'Courier New', Courier, monospace;
+          font-family: Monaco, Courier, monospace;
           font-size: 14px;
           overflow: auto;
           height: 300px;
@@ -139,20 +146,24 @@
           flex-direction: column-reverse;
         "
       ></div>
-      <div style="background-color: lightyellow; overflow: auto; height: 400px">
-        <h2>Status</h2>
-        <div id="status"></div>
-      </div>
+
       <div style="background-color: pink; overflow: auto; height: 400px">
-        <h2>Settings</h2>
+        <div style="text-align: center; font-size: 1.2em">Settings
+          <span style="cursor: pointer;" title="Send $$ command"  onclick="sendCommand('$$')">⟳</span>
+        </div>
         <div id="settings"></div>
       </div>
       <div style="background-color: lightblue; overflow: auto; height: 400px">
-        <h2>Parameters</h2>
+        <div style="text-align: center; font-size: 1.2em">Parameters
+          <span style="cursor: pointer;" title="Send $# command"  onclick="sendCommand('$#')">⟳</span>
+        </div>
         <div id="parameters"></div>
       </div>
     </div>
     <div style="display: flex; flex-direction: row">
+      <button onclick="devicesManager.updateDevices()">
+        updateDevices
+      </button>
       <div id="devices"></div>
       <div id="logs"></div>
     </div>

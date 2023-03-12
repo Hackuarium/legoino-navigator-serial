@@ -26,5 +26,3 @@ for (let line of lines) {
     });
   }
 }
-
-console.log(results);

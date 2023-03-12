@@ -134,12 +134,17 @@ export class Device {
    We need to add this command in the queue and wait it resolves or rejects
   */
   async get(command, options = {}) {
-    const { timeout = this.timeout, timeoutResolve = false } = options;
+    const {
+      timeout = this.timeout,
+      timeoutResolve = false,
+      disableTerminal = false,
+    } = options;
 
     const action = new Action(command, this, {
       ...this.commandOptions,
       timeout,
       timeoutResolve,
+      disableTerminal,
       logger: this.logger.child({ kind: 'Command', command }),
     });
 

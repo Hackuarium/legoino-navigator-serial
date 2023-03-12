@@ -137,7 +137,8 @@ export class DevicesManager extends EventEmitter {
    * @param {string} command Command to send
    * @param {object} [options={}] options
    * @param {number} [options.timeout] Timeout in [ms]
-   * @param {number} [options.timeoutResolve=false] If `true` the promise will resolve even if the command timed out
+   * @param {boolean} [options.timeoutResolve=false] If `true` the promise will resolve even if the command timed out
+   * @param {boolean} [options.disableTerminal=false]
    */
   async sendCommand(id, command, options = {}) {
     const device = this.findDevice(id);

@@ -2,15 +2,16 @@ import { v4 } from '@lukeed/uuid';
 
 export class Terminal {
   constructor(options = {}) {
+    this.start = Date.now();
     this.lineNumber = 0;
     this.eventNumber = 0;
-    this.limit = options.limit || 1000;
+    this.limit = options.limit ?? 1000;
     this.onChange = options.onChange;
     this.ignoreSend = options.ignoreSend ?? [];
     this.ignoreReceive = options.ignoreReceive ?? [];
-    this.showSpecial = options.showSpecial || true;
-    this.sendColor = options.sendColor || '#41c5d1';
-    this.receiveColor = options.receiveColor || '#2ea600';
+    this.showSpecial = options.showSpecial ?? true;
+    this.sendColor = options.sendColor ?? '#efcef2';
+    this.receiveColor = options.receiveColor ?? '#bbeeb7';
     this.events = [];
   }
 
@@ -40,6 +41,7 @@ export class Terminal {
       this.lineNumber++;
       const event = {
         uuid: v4(),
+        time: Math.round(Date.now() - this.start),
         lineNumber: this.lineNumber,
         eventNumber: this.eventNumber,
         kind,
@@ -65,7 +67,7 @@ export class Terminal {
       html.push(
         `<div style="color: ${
           event.kind === 'send' ? this.sendColor : this.receiveColor
-        }">${htmlEscape(event.line)}</div>`,
+        }">${(event.time / 1000).toFixed(3)}: ${htmlEscape(event.line)}</div>`,
       );
     }
     html.push('</div>');
@@ -80,7 +82,7 @@ function splitInLines(text, showSpecial) {
       .replace(/\n/g, '<LF>\n')
       .replace(/\t/g, '<TAB>\t');
   }
-  return text.split(/\r?\n/);
+  return text.replace(/[\r\n]+$/, '').split(/\r?\n/);
 }
 
 function htmlEscape(str) {

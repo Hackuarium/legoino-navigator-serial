@@ -15,8 +15,9 @@ export class Action {
     this.device = device;
     this.currentTimeout = undefined;
     this.command = command;
-    this.timeout = options.timeout ?? 100;
+    this.timeout = options.timeout ?? 200;
     this.timeoutResolve = options.timeoutResolve ?? false;
+    this.disableTerminal = options.disableTerminal ?? false;
     this.kind = options.kind ?? 'writeRead';
     this.answer = '';
     this.partialAnswer = '';
@@ -55,12 +56,14 @@ export class Action {
       if (this.timeoutResolve) {
         this.status = STATUS_RESOLVED;
         this.resolve(this.partialAnswer);
-        this.device.terminal?.receive(this.partialAnswer);
+        !this.disableTerminal &&
+          this.device.terminal?.receive(this.partialAnswer);
         this.logger?.info(`Timeout resolved after ${this.timeout}ms`);
       } else {
         this.status = STATUS_ERROR;
         this.reject(this.partialAnswer);
-        this.device.terminal?.receive(this.partialAnswer);
+        !this.disableTerminal &&
+          this.device.terminal?.receive(this.partialAnswer);
         this.logger?.error(`Timeout reject after ${this.timeout}ms`);
       }
     }, this.timeout);
@@ -89,7 +92,7 @@ export class Action {
   async writeText(command) {
     if (!command) return;
     const dataArrayBuffer = encoder.encode(`${command}\n`);
-    this.device.terminal?.send(command);
+    !this.disableTerminal && this.device.terminal?.send(command);
     return this.device.writer.write(dataArrayBuffer);
   }
 
@@ -103,8 +106,8 @@ export class Action {
       }
       this.partialAnswer += decoder.decode(chunk.value);
       if (this.isEndCommandAnswer(this.command, this.partialAnswer)) break;
-      await delay(1);
+      await delay(5);
     }
-    this.device.terminal?.receive(this.partialAnswer);
+    !this.disableTerminal && this.device.terminal?.receive(this.partialAnswer);
   }
 }

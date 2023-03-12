@@ -1,18 +1,12 @@
-const status = {
-  message: '',
-  info: {},
-  settings: {},
-  parameters: {},
-  error: {},
-  version: '',
-};
+const state = LegoinoSerial.GRBL.getEmptyState();
 
 const terminal = new LegoinoSerial.Terminal({
   onChange: (newEvents, allEvents) => {
     document.getElementById('terminal').innerHTML = terminal.toHtml();
   },
-  ignoreSend: [/\?/],
-  ignoreReceive: [/^(ok|<)/],
+  //ignoreSend: [/\?/],
+  // ignoreReceive: [/^(ok|<)/],
+  showSpecial: false,
 });
 
 const devicesManager = new LegoinoSerial.DevicesManager(navigator.serial, {
@@ -33,7 +27,7 @@ const devicesManager = new LegoinoSerial.DevicesManager(navigator.serial, {
   },
   device: {
     interCommandDelay: 50,
-    timeout: 100,
+    timeout: 1000,
   },
 });
 
@@ -48,9 +42,9 @@ async function doAll() {
     },
   });
 
-  // monitoring the status
+  // monitoring the state
   window.setInterval(async () => {
-    await sendCommand('?');
+    await sendCommand('?', { disableTerminal: true });
   }, 250);
 
   // checking if anything is coming just like that
@@ -60,7 +54,6 @@ async function doAll() {
         timeout: 20,
         timeoutResolve: true,
       });
-      console.log(result);
     }, 2000);
   }
 
@@ -75,27 +68,51 @@ async function sendCommand(command, options = {}) {
   await devicesManager
     .sendCommand('9025-67', command, options)
     .then((result) => {
-      LegoinoSerial.GRBL.updateStatus(result, status);
+      LegoinoSerial.GRBL.updateState(result, state);
     })
     .catch((e) => {
-      LegoinoSerial.GRBL.updateStatus(e, status);
+      LegoinoSerial.GRBL.updateState(e, state);
     });
   updateScreen();
 }
 
+function sendGcode(text) {
+  for (let command of text.split(/\r?\n/).filter((line) => line)) {
+    const sentLine = state.gcode.sentLine++;
+    sendCommand(`N${sentLine} ${command}`);
+  }
+}
+
 function updateScreen() {
-  console.log(status.error);
-  document.getElementById('error').innerHTML = status.error.code
-    ? `${status.error.code}: ${status.error.description}`
-    : '';
-  document.getElementById('status').innerHTML = `
-      <h2>${status.message}</h2>
-      <h3>X: ${status.info?.MPos?.[0]}</h3>
-      <h3>Y: ${status.info?.MPos?.[1]}</h3>
-      <h3>Z: ${status.info?.MPos?.[2]}</h3>
-      FS: ${status.info.FS}<br/>
-      Ov: ${status.info.Ov}<br/>
-      WCO: ${status.info.Ov}<br/>
+  document.getElementById('messages').innerHTML = `<div>${state.messages
+    .map((message) => {
+      const style = message.kind.match(/(error|alarm)/i)
+        ? 'color: red; font-weight: bold'
+        : '';
+      let line = `<div style="${style}">${message.kind}: ${message.description}</div>`;
+
+      return line;
+    })
+    .join('\n')}</div>`;
+
+  const pinStates = state.status.Pn.map((pinState, pinIndex) => {
+    const pinName = state.settings[`$P${pinIndex}`]?.description;
+    return `<span style="padding: 2px; margin: 2px; border: solid 1px; color: ${
+      pinState ? 'green' : 'red'
+    }">${String.fromCharCode(88 + pinIndex)}: ${pinState}</span>`;
+  }).join('\n');
+
+  document.getElementById('state').innerHTML = `
+      <div style="font-size: 2em; text-align: center; font-weight: bold">${state.status.value}</div>
+      <div style="font-size: 1.5em; font-weight: bold">X: ${state.status?.MPos?.[0]}</div>
+      <div style="font-size: 1.5em; font-weight: bold">Y: ${state.status?.MPos?.[1]}</div>
+      <div style="font-size: 1.5em; font-weight: bold">Z: ${state.status?.MPos?.[2]}</div>
+      Pin states: ${pinStates}<br/>
+      Feed rate: ${state.status.FS?.[0]}<br/> 
+      Spindle rate: ${state.status.FS?.[1]}<br/>
+      GCode line number: ${state.status.Ln?.[0]}<br/>
+      Override Values: ${state.status.Ov}<br/>
+      Work Coordinate Offset: ${state.status.WCO}<br/>
    `;
 
   document.getElementById('settings').innerHTML = `
@@ -105,9 +122,9 @@ function updateScreen() {
           <th>Value</th>
           <th>Description</th>
         </tr>
-        ${Object.keys(status.settings)
+        ${Object.keys(state.settings)
           .sort((a, b) => Number(a.substring(1)) - Number(b.substring(1)))
-          .map((key) => status.settings[key])
+          .map((key) => state.settings[key])
           .map(
             (setting) =>
               `
@@ -129,9 +146,9 @@ function updateScreen() {
     <th>Value</th>
     <th>Description</th>
   </tr>
-  ${Object.keys(status.parameters)
+  ${Object.keys(state.parameters)
     .sort()
-    .map((key) => status.parameters[key])
+    .map((key) => state.parameters[key])
     .map(
       (parameter) =>
         `

@@ -104,8 +104,9 @@
 	    this.device = device;
 	    this.currentTimeout = undefined;
 	    this.command = command;
-	    this.timeout = options.timeout ?? 100;
+	    this.timeout = options.timeout ?? 200;
 	    this.timeoutResolve = options.timeoutResolve ?? false;
+	    this.disableTerminal = options.disableTerminal ?? false;
 	    this.kind = options.kind ?? 'writeRead';
 	    this.answer = '';
 	    this.partialAnswer = '';
@@ -138,12 +139,12 @@
 	      if (this.timeoutResolve) {
 	        this.status = STATUS_RESOLVED;
 	        this.resolve(this.partialAnswer);
-	        this.device.terminal?.receive(this.partialAnswer);
+	        !this.disableTerminal && this.device.terminal?.receive(this.partialAnswer);
 	        this.logger?.info(`Timeout resolved after ${this.timeout}ms`);
 	      } else {
 	        this.status = STATUS_ERROR$1;
 	        this.reject(this.partialAnswer);
-	        this.device.terminal?.receive(this.partialAnswer);
+	        !this.disableTerminal && this.device.terminal?.receive(this.partialAnswer);
 	        this.logger?.error(`Timeout reject after ${this.timeout}ms`);
 	      }
 	    }, this.timeout);
@@ -165,7 +166,7 @@
 	  async writeText(command) {
 	    if (!command) return;
 	    const dataArrayBuffer = encoder.encode(`${command}\n`);
-	    this.device.terminal?.send(command);
+	    !this.disableTerminal && this.device.terminal?.send(command);
 	    return this.device.writer.write(dataArrayBuffer);
 	  }
 	  async readText() {
@@ -178,9 +179,9 @@
 	      }
 	      this.partialAnswer += decoder.decode(chunk.value);
 	      if (this.isEndCommandAnswer(this.command, this.partialAnswer)) break;
-	      await delay$1(1);
+	      await delay$1(5);
 	    }
-	    this.device.terminal?.receive(this.partialAnswer);
+	    !this.disableTerminal && this.device.terminal?.receive(this.partialAnswer);
 	  }
 	}
 
@@ -299,12 +300,14 @@
 	    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 	    const {
 	      timeout = this.timeout,
-	      timeoutResolve = false
+	      timeoutResolve = false,
+	      disableTerminal = false
 	    } = options;
 	    const action = new Action(command, this, {
 	      ...this.commandOptions,
 	      timeout,
 	      timeoutResolve,
+	      disableTerminal,
 	      logger: this.logger.child({
 	        kind: 'Command',
 	        command
@@ -487,7 +490,8 @@
 	   * @param {string} command Command to send
 	   * @param {object} [options={}] options
 	   * @param {number} [options.timeout] Timeout in [ms]
-	   * @param {number} [options.timeoutResolve=false] If `true` the promise will resolve even if the command timed out
+	   * @param {boolean} [options.timeoutResolve=false] If `true` the promise will resolve even if the command timed out
+	   * @param {boolean} [options.disableTerminal=false]
 	   */
 	  async sendCommand(id, command) {
 	    let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
@@ -527,15 +531,16 @@
 	class Terminal {
 	  constructor() {
 	    let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	    this.start = Date.now();
 	    this.lineNumber = 0;
 	    this.eventNumber = 0;
-	    this.limit = options.limit || 1000;
+	    this.limit = options.limit ?? 1000;
 	    this.onChange = options.onChange;
 	    this.ignoreSend = options.ignoreSend ?? [];
 	    this.ignoreReceive = options.ignoreReceive ?? [];
-	    this.showSpecial = options.showSpecial || true;
-	    this.sendColor = options.sendColor || '#41c5d1';
-	    this.receiveColor = options.receiveColor || '#2ea600';
+	    this.showSpecial = options.showSpecial ?? true;
+	    this.sendColor = options.sendColor ?? '#efcef2';
+	    this.receiveColor = options.receiveColor ?? '#bbeeb7';
 	    this.events = [];
 	  }
 	  send(text) {
@@ -561,6 +566,7 @@
 	      this.lineNumber++;
 	      const event = {
 	        uuid: v4(),
+	        time: Math.round(Date.now() - this.start),
 	        lineNumber: this.lineNumber,
 	        eventNumber: this.eventNumber,
 	        kind,
@@ -580,7 +586,7 @@
 	    let html = [];
 	    html.push('<div style="background-color:black">');
 	    for (let event of this.events) {
-	      html.push(`<div style="color: ${event.kind === 'send' ? this.sendColor : this.receiveColor}">${htmlEscape(event.line)}</div>`);
+	      html.push(`<div style="color: ${event.kind === 'send' ? this.sendColor : this.receiveColor}">${(event.time / 1000).toFixed(3)}: ${htmlEscape(event.line)}</div>`);
 	    }
 	    html.push('</div>');
 	    return html.join('\n');
@@ -590,11 +596,23 @@
 	  if (showSpecial) {
 	    text = text.replace(/\r/g, '<CR>').replace(/\n/g, '<LF>\n').replace(/\t/g, '<TAB>\t');
 	  }
-	  return text.split(/\r?\n/);
+	  return text.replace(/[\r\n]+$/, '').split(/\r?\n/);
 	}
 	function htmlEscape(str) {
 	  return str.replace(/&/g, '&amp').replace(/>/g, '&gt').replace(/</g, '&lt');
 	}
+
+	const alarmsDescription = {
+	  1: 'Hard limit triggered. Machine position is likely lost due to sudden and immediate halt. Re-homing is highly recommended.',
+	  2: 'G-code motion target exceeds machine travel. Machine position safely retained. Alarm may be unlocked.',
+	  3: 'Reset while in motion. Grbl cannot guarantee position. Lost steps are likely. Re-homing is highly recommended.',
+	  4: 'Probe fail. The probe is not in the expected initial state before starting probe cycle, where G38.2 and G38.3 is not triggered and G38.4 and G38.5 is triggered.',
+	  5: 'Probe fail. Probe did not contact the workpiece within the programmed travel for G38.2 and G38.4.',
+	  6: 'Homing fail. Reset during active homing cycle.',
+	  7: 'Homing fail. Safety door was opened during active homing cycle.',
+	  8: 'Homing fail. Cycle failed to clear limit switch when pulling off. Try increasing pull-off setting or check wiring.',
+	  9: 'Homing fail. Could not find limit switch within search distance. Defined as `1.5 * max_travel` on search and `5 * pulloff` on locate phases.'
+	};
 
 	const errorsDescription = {
 	  1: 'G-code words consist of a letter and a value. Letter was not found.',
@@ -674,67 +692,188 @@
 	  $132: 'Z-axis maximum travel, millimeters'
 	};
 
-	function updateStatus(input, status) {
+	// format description: https://github.com/gnea/grbl/edit/master/doc/markdown/interface.md
+	const MAX_ERRORS_MESSAGES = 20;
+
+	/**
+	 * @typedef {Object} State
+	 * @property {object[]} [state.messages=[]]
+	 * @property {object} [state.status={}]
+	 * @property {object} [state.settings={}]
+	 * @property {object} [state.parameters={}]
+	 * @property {string} [state.version='']
+	 */
+
+	/**
+	 *
+	 * @param {string} input
+	 * @param {State} [state={}]
+	 * @returns
+	 */
+	function updateState(input) {
+	  let state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	  if (!input) return;
 	  const lines = input.split(/\r?\n/);
 	  for (let line of lines) {
 	    if (line.startsWith('<')) {
-	      parseQuestionMark(line, status);
+	      parseQuestionMark(line, state);
 	    }
 	    if (line.startsWith('[')) {
-	      parseParameters(line, status);
+	      parseSquareBracket(line, state);
 	    }
 	    if (line.startsWith('$')) {
-	      parseSettings(line, status);
+	      parseSettings(line, state);
 	    }
 	    if (line.startsWith('Grbl')) {
-	      status.version = line.replace('Grbl ', '');
+	      state.version = line.replace('Grbl ', '');
 	    }
 	    if (line.startsWith('error')) {
-	      parseErrors(line, status);
+	      parseErrors(line, state);
+	    }
+	    if (line.includes('ALARM')) {
+	      parseAlarms(line, state);
 	    }
 	  }
 	}
-	function parseErrors(line, status) {
+
+	/**
+	 *
+	 * @param {string} line
+	 * @param {State} [state={}]
+	 * @returns
+	 */
+	function parseErrors(line, state) {
 	  const [, error] = line.split(':');
-	  status.error = {
+	  appendMessage({
+	    kind: 'ERROR',
 	    code: error,
 	    description: errorsDescription[error]
-	  };
+	  }, state);
 	}
-	function parseSettings(line, status) {
+
+	/**
+	 *
+	 * @param {string} line
+	 * @param {State} [state={}]
+	 * @returns
+	 */
+	function parseAlarms(line, state) {
+	  const [, alarm] = line.split(':');
+	  appendMessage({
+	    kind: 'ALARM',
+	    code: alarm,
+	    description: alarmsDescription[alarm]
+	  }, state);
+	}
+
+	/**
+	 *
+	 * @param {string} line
+	 * @param {State} [state]
+	 * @return
+	 */
+	function parseSettings(line, state) {
 	  const [key, value] = line.split('=');
-	  status.settings[key] = {
+	  state.settings[key] = {
 	    key,
 	    description: settingsDescription[key],
 	    value: Number(value)
 	  };
 	}
-	function parseParameters(line, status) {
+	const keyMappings = {
+	  HLP: 'Help',
+	  MSG: 'Message',
+	  GC: 'GCode',
+	  VER: 'Version',
+	  OPT: 'Option',
+	  echo: 'Echo'
+	};
+
+	/**
+	 *
+	 * @param {string} line
+	 * @param {State} [state={}]
+	 * @returns
+	 */
+	function parseSquareBracket(line) {
+	  let state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 	  const [key, value] = line.replace(/\[(.*)\]/, '$1').split(':');
-	  status.parameters[key] = {
-	    key,
-	    description: parametersDescription[key],
-	    value: value.split(',').map(field => Number(field))
-	  };
-	}
-	function parseQuestionMark(line, status) {
-	  //  <Idle|MPos:0.000,0.000,0.000|FS:0,0|WCO:0.000,0.000,0.000>
-	  const parts = line.replace(/<(.*)>/, '$1').split('|');
-	  const message = parts[0];
-	  const info = {};
-	  for (let i = 1; i < parts.length; i++) {
-	    const [key, value] = parts[i].split(':');
-	    info[key] = value.split(',').map(v => Number(v));
+	  const description = line.replace(/\[(.*)\]/, '$1').split(':').slice(1).join(':');
+	  switch (key) {
+	    case 'echo':
+	    case 'VER':
+	    case 'OPT':
+	    case 'HLP':
+	    case 'GC':
+	    case 'MSG':
+	      appendMessage({
+	        kind: keyMappings[key],
+	        description
+	      }, state);
+	      return;
+	    default:
+	      state.parameters[key] = {
+	        key,
+	        description: parametersDescription[key],
+	        value: value.split(',').map(field => Number(field))
+	      };
 	  }
-	  status.message = message;
-	  status.info = {
-	    ...status.info,
-	    ...info
-	  };
 	}
 
+	/**
+	 *
+	 * @param {string} line
+	 * @param {State} [state]
+	 * @returns
+	 */
+	function parseQuestionMark(line) {
+	  let state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	  //  <Idle|MPos:0.000,0.000,0.000|FS:0,0|WCO:0.000,0.000,0.000>
+	  const parts = line.replace(/<(.*)>/, '$1').split('|');
+	  const status = {
+	    value: parts[0]
+	  };
+	  status.Pn = [false, false, false];
+	  for (let i = 1; i < parts.length; i++) {
+	    const [key, value] = parts[i].split(':');
+	    if (key === 'Pn') {
+	      status[key] = [value.includes('X'), value.includes('Y'), value.includes('Z')];
+	    } else {
+	      status[key] = value.split(',').map(v => Number(v));
+	    }
+	  }
+	  state.status = {
+	    ...state.status,
+	    ...status
+	  };
+	}
+	function appendMessage(message, state) {
+	  state.messages.push({
+	    epoch: Date.now(),
+	    ...message
+	  });
+	  if (state.messages.length > MAX_ERRORS_MESSAGES) {
+	    state.messages.splice(0, state.messages.length - MAX_ERRORS_MESSAGES);
+	  }
+	  console.log(state.messages);
+	}
+
+	function getEmptyState() {
+	  return {
+	    messages: [],
+	    status: {},
+	    settings: {},
+	    parameters: {},
+	    version: '',
+	    gcode: {
+	      currentLine: 0,
+	      sentLine: 1
+	    }
+	  };
+	}
 	const GRBL = {
-	  updateStatus
+	  updateState,
+	  getEmptyState
 	};
 
 	exports.DevicesManager = DevicesManager;
