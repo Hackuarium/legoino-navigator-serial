@@ -301,8 +301,12 @@
 	    const {
 	      timeout = this.timeout,
 	      timeoutResolve = false,
-	      disableTerminal = false
+	      disableTerminal = false,
+	      unique = false
 	    } = options;
+	    if (unique && this.queue.find(action => action.command === command)) {
+	      return;
+	    }
 	    const action = new Action(command, this, {
 	      ...this.commandOptions,
 	      timeout,

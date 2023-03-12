@@ -44,7 +44,7 @@ async function doAll() {
 
   // monitoring the state
   window.setInterval(async () => {
-    await sendCommand('?', { disableTerminal: true });
+    await sendCommand('?', { disableTerminal: true, unique: true });
   }, 250);
 
   // checking if anything is coming just like that
@@ -95,7 +95,7 @@ function updateScreen() {
     })
     .join('\n')}</div>`;
 
-  const pinStates = state.status.Pn.map((pinState, pinIndex) => {
+  const pinStates = state.status.Pn?.map((pinState, pinIndex) => {
     const pinName = state.settings[`$P${pinIndex}`]?.description;
     return `<span style="padding: 2px; margin: 2px; border: solid 1px; color: ${
       pinState ? 'green' : 'red'
