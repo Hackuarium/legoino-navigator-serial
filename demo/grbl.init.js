@@ -102,7 +102,14 @@ function updateScreen() {
     }">${String.fromCharCode(88 + pinIndex)}: ${pinState}</span>`;
   }).join('\n');
 
+  const stateColor = state.status.value.match(/(idle)/i)
+    ? 'lightgreen'
+    : state.status.value.match(/(run)/i)
+    ? 'green'
+    : 'pink';
   document.getElementById('state').innerHTML = `
+  <div style="background-color: ${stateColor}">
+   
       <div style="font-size: 2em; text-align: center; font-weight: bold">${state.status.value}</div>
       <div style="font-size: 1.5em; font-weight: bold">X: ${state.status?.MPos?.[0]}</div>
       <div style="font-size: 1.5em; font-weight: bold">Y: ${state.status?.MPos?.[1]}</div>
@@ -113,6 +120,7 @@ function updateScreen() {
       GCode line number: ${state.status.Ln?.[0]}<br/>
       Override Values: ${state.status.Ov}<br/>
       Work Coordinate Offset: ${state.status.WCO}<br/>
+      </div>
    `;
 
   document.getElementById('settings').innerHTML = `

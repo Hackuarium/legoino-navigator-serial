@@ -57,8 +57,8 @@
             <button onclick="sendCommand('!')">! Feed hold</button>
 
         </div>
-        <div style="background-color: lightgreen">
-          <h2>Manual control</h2>
+        <div style="background-color: #EEE">
+          <div style="text-align: center; font-size: 1.2em">Manual control</div>
           <p>
             X:
             <button onclick="sendCommand('X'+(state.status.MPos[0]-100))">
@@ -108,18 +108,18 @@
             </button>
           </p>
         </div>
-        <div style="background-color: lightyellow; overflow: auto; height: 250px">
-          <div style="text-align: center; font-size: 1.2em">Status
+        <div style="background-color: #DDD; overflow: auto; height: 250px">
+          <div style="text-align: center; font-size: 1.2em;">Status
             <span style="cursor: pointer;" title="Send ? command"  onclick="sendCommand('?')">⟳</span>
-          </div>
               <button onclick="sendCommand('$H')">$H Home</button>
               <button onclick="sendCommand('$X')">$X Unlock</button>
+          </div>
           <div id="state"></div>
         </div>
-        <div style="background-color: lightcyan">
-          <h2>GCODE
+        <div style="background-color: #EEE">
+          <div style="text-align: center; font-size: 1.2em">Gcode
             <button onclick="sendCommand('$G')">$G Gcode status</button>
-          </h2>
+          </div>
           <textarea cols="30" rows="10" id="gcode">X100
 Y100
 Z100
