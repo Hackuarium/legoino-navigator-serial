@@ -141,7 +141,11 @@ export class Device {
       unique = false,
     } = options;
 
-    if (unique && this.queue.find((action) => action.command === command)) {
+    if (
+      unique &&
+      (this.action.command === command ||
+        this.queue.find((action) => action.command === command))
+    ) {
       return;
     }
 

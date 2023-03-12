@@ -2,6 +2,7 @@ import { alarmsDescription } from './alarmsDescription.js';
 import { errorsDescription } from './errorsDescription.js';
 import { parametersDescription } from './parametersDescription.js';
 import { settingsDescription } from './settingsDescription.js';
+import { statusesDescription } from './statusesDescription.js';
 
 // format description: https://github.com/gnea/grbl/edit/master/doc/markdown/interface.md
 const MAX_ERRORS_MESSAGES = 20;

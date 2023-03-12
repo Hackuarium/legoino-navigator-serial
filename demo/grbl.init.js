@@ -97,8 +97,8 @@ function updateScreen() {
 
   const pinStates = state.status.Pn?.map((pinState, pinIndex) => {
     const pinName = state.settings[`$P${pinIndex}`]?.description;
-    return `<span style="padding: 2px; margin: 2px; border: solid 1px; color: ${
-      pinState ? 'green' : 'red'
+    return `<span style="color: white; padding: 2px; margin: 2px; border: solid 1px; background-color: ${
+      pinState ? 'red' : 'green'
     }">${String.fromCharCode(88 + pinIndex)}: ${pinState}</span>`;
   }).join('\n');
 
