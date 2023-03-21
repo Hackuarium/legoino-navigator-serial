@@ -120,12 +120,10 @@
           <div style="text-align: center; font-size: 1.2em">Gcode
             <button onclick="sendCommand('$G')">$G Gcode status</button>
           </div>
-          <textarea cols="30" rows="10" id="gcode">X100
-Y100
-Z100
-X0
-Y0
-Z0
+          <textarea cols="30" rows="10" id="gcode">X-300
+Y-300
+Z-100
+X0 Y0 Z0
 </textarea>
           <button onclick="sendGcode(document.getElementById('gcode').value)">Send GCODE</button>
           </div>
