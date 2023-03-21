@@ -43,9 +43,11 @@ async function doAll() {
   });
 
   // monitoring the state
-  window.setInterval(async () => {
-    await sendCommand('?', { disableTerminal: true, unique: true });
-  }, 250);
+  window.setTimeout(() => {
+    window.setInterval(async () => {
+      await sendCommand('?', { disableTerminal: true, unique: true });
+    }, 250);
+  }, 1000);
 
   // checking if anything is coming just like that
   if (false) {
@@ -68,6 +70,7 @@ async function sendCommand(command, options = {}) {
   await devicesManager
     .sendCommand('9025-67', command, options)
     .then((result) => {
+      console.log({ result });
       LegoinoSerial.GRBL.updateState(result, state);
     })
     .catch((e) => {

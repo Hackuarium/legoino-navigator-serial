@@ -74,7 +74,7 @@ export class Device {
           .catch((error) => {
             this.logger?.error(
               {
-                command: this.action.command,
+                command: this.action?.command,
                 answer: this.action.partialAnswer,
               },
               error.toString(),
@@ -143,7 +143,7 @@ export class Device {
 
     if (
       unique &&
-      (this.action.command === command ||
+      (this.action?.command === command ||
         this.queue.find((action) => action.command === command))
     ) {
       return;

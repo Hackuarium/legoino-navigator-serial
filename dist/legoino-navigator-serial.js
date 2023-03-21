@@ -249,7 +249,7 @@
 	          }, 'Resolve writeRead command');
 	        }).catch(error => {
 	          this.logger?.error({
-	            command: this.action.command,
+	            command: this.action?.command,
 	            answer: this.action.partialAnswer
 	          }, error.toString());
 	        });
@@ -304,7 +304,7 @@
 	      disableTerminal = false,
 	      unique = false
 	    } = options;
-	    if (unique && this.queue.find(action => action.command === command)) {
+	    if (unique && (this.action?.command === command || this.queue.find(action => action.command === command))) {
 	      return;
 	    }
 	    const action = new Action(command, this, {
@@ -716,6 +716,7 @@
 	 */
 	function updateState(input) {
 	  let state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	  console.log(input);
 	  if (!input) return;
 	  const lines = input.split(/\r?\n/);
 	  for (let line of lines) {
