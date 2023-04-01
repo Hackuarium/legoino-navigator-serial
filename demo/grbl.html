@@ -128,6 +128,8 @@ X0 Y0 Z0
           <button onclick="sendGcode(document.getElementById('gcode').value)">Send GCODE</button>
 
           </div>
+          <button onclick="sendGcode(`X0 Y0
+Z0`)">Home 0 0 0</button>
           <button onclick="sendGcode('X-250 Y-350 Z0')">Maintenance</button>
           <button onclick="sendGcode(`X-170 Y-40
 M4
