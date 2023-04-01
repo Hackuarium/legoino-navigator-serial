@@ -131,24 +131,35 @@ X0 Y0 Z0
           <button onclick="sendGcode(`X0 Y0
 Z0`)">Home 0 0 0</button>
           <button onclick="sendGcode('X-250 Y-350 Z0')">Maintenance</button>
-          <button onclick="sendGcode(`X-170 Y-40
-M4
-Y-50
-X-170
-Z-160
-Z-100
-X-190
-Z-160
-Z-100
-Y-30
-Z-160
-Z-100
-X-170
-Z-160
-Z-50
-X-400 Y-40 Z-20
-M3
-X0 Y0 Z0`)">Add screws</button>
+          <button onclick="sendGcode(`X-170 Y-50
+ Z-160
+ M4
+ Z-50
+ X-320 Y-20
+ Z-130
+ M3
+ Z-50
+ 
+ X-190 Y-30
+ Z-160
+ M4
+ Z-50
+ X-450 Y-100
+ Z-130
+ M3
+ Z-50
+ 
+ X-170 Y-30
+ Z-160
+ M4
+ Z-50
+ X-450 Y-20
+ Z-130
+ M3
+ Z-50
+ 
+ X0 Y0 Z0
+`)">Add screws</button>
       </div>
     </div>
 
