@@ -126,7 +126,16 @@ Z-100
 X0 Y0 Z0
 </textarea>
           <button onclick="sendGcode(document.getElementById('gcode').value)">Send GCODE</button>
+
           </div>
+          <button onclick="sendGcode('X-250 Y-350 Z0')">Maintenance</button>
+          <button onclick="sendGcode(`X-170 Y-40
+M4
+Z-160
+Z-100
+X-350 Y-40 Z-50
+M3
+X0 Y0 Z0`)">Add screws</button>
       </div>
     </div>
 
