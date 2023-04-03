@@ -120,9 +120,9 @@
           <div style="text-align: center; font-size: 1.2em">Gcode
             <button onclick="sendCommand('$G')">$G Gcode status</button>
           </div>
-          <textarea cols="30" rows="10" id="gcode">X-300
-Y-300
-Z-100
+          <textarea cols="30" rows="10" id="gcode">X-30
+Y-30
+Z-10
 X0 Y0 Z0
 </textarea>
           <button onclick="sendGcode(document.getElementById('gcode').value)">Send GCODE</button>
@@ -189,9 +189,11 @@ Z-50`)">Deep pot</button>
       <div style="background-color: pink; overflow: auto; height: 400px">
         <div style="text-align: center; font-size: 1.2em">Settings
           <span style="cursor: pointer;" title="Send $$ command"  onclick="sendCommand('$$')">⟳</span>
+          <span style="cursor: pointer;" title="Copy settings to clipboard"  onclick="copySettings('$$')">📋</span>
         </div>
         <div id="settings"></div>
       </div>
+
       <div style="background-color: lightblue; overflow: auto; height: 400px">
         <div style="text-align: center; font-size: 1.2em">Parameters
           <span style="cursor: pointer;" title="Send $# command"  onclick="sendCommand('$#')">⟳</span>

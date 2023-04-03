@@ -23,7 +23,6 @@ const MAX_ERRORS_MESSAGES = 20;
  * @returns
  */
 export function updateState(input, state = {}) {
-  console.log(input);
   if (!input) return;
   const lines = input.split(/\r?\n/);
 

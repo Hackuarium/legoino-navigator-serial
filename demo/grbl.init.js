@@ -70,7 +70,6 @@ async function sendCommand(command, options = {}) {
   await devicesManager
     .sendCommand('9025-67', command, options)
     .then((result) => {
-      console.log({ result });
       LegoinoSerial.GRBL.updateState(result, state);
     })
     .catch((e) => {
@@ -79,11 +78,36 @@ async function sendCommand(command, options = {}) {
   updateScreen();
 }
 
-function sendGcode(text) {
+async function copySettings() {
+  await devicesManager
+    .sendCommand('9025-67', '$$')
+    .then((result) => {
+      navigator.clipboard.writeText(result.replace('ok', ''));
+    })
+    .catch((e) => {});
+}
+
+async function sendGcode(text) {
   for (let command of text.split(/\r?\n/).filter((line) => line)) {
-    const sentLine = state.gcode.sentLine++;
-    sendCommand(`N${sentLine} ${command}`);
+    if (command.match(/^\$/)) {
+      sendCommand(command);
+    } else {
+      const sentLine = state.gcode.sentLine++;
+      await sendCommand(`N${sentLine} ${command}`);
+      while (state.status.Ln?.[0] && sentLine - state.status.Ln?.[0] > 10) {
+        // 10 steps in advance
+        await delay(100);
+      }
+    }
   }
+}
+
+async function delay(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(() => {
+      resolve();
+    }, ms);
+  });
 }
 
 function updateScreen() {
