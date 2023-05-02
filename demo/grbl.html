@@ -128,46 +128,43 @@ X0 Y0 Z0
           <button onclick="sendGcode(document.getElementById('gcode').value)">Send GCODE</button>
 
           </div>
-          <button onclick="sendGcode(`X0 Y0
-Z0`)">Home 0 0 0</button>
+          <button onclick="sendGcode(`M3 Z0
+X0 Y0`)">Home 0 0 0</button>
           <button onclick="sendGcode('X-250 Y-350 Z0')">Maintenance</button>
-          <button onclick="sendGcode(`X-50 Y-300
-Z-230
-M4
-Z-50
-X-320 Y-20
-Z-130
-M3
-Z-50`)">Deep pot</button>
-          <button onclick="sendGcode(`X-170 Y-50
- Z-160
+          <button onclick="sendGcode(`X-30 Y-330
+ Z-190
  M4
- Z-50
- X-320 Y-20
- Z-130
- M3
- Z-50
+ Z-240
  
- X-190 Y-30
- Z-160
- M4
  Z-50
  X-450 Y-100
- Z-130
- M3
- Z-50
- 
- X-170 Y-30
- Z-160
- M4
- Z-50
- X-450 Y-20
- Z-130
+ Z-100
  M3
  Z-50
  
  X0 Y0 Z0
 `)">Add screws</button>
+          <button onclick="sendGcode(`Z0
+X-490Y-345
+Z-60
+M3
+`)">First pot</button>
+<div>
+<button onclick="sendGcode(`Z0
+M4X-250Y0
+`)">M4X-250Y0</button><br />
+<button onclick="sendGcode(`Z0
+M4X-250Y-100
+`)">M4X-250Y-100</button><br />
+<button onclick="sendGcode(`Z0
+M4X-490Y0
+`)">M4X-490Y0</button><br />
+<button onclick="sendGcode(`Z0
+M4X-490Y-100
+`)">M4X-490Y-100</button>
+
+
+</div>
       </div>
     </div>
 

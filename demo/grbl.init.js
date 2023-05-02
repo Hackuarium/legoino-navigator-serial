@@ -88,7 +88,10 @@ async function copySettings() {
 }
 
 async function sendGcode(text) {
-  for (let command of text.split(/\r?\n/).filter((line) => line)) {
+  const commands = text
+    .split(/\r?\n/)
+    .filter((line) => line && !line.startsWith('/'));
+  for (let command of commands) {
     if (command.match(/^\$/)) {
       sendCommand(command);
     } else {
