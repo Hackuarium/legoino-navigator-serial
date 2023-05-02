@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0](https://github.com/Hackuarium/legoino-navigator-serial/compare/v0.2.2...v0.3.0) (2023-05-02)
+
+
+### Features
+
+* add deep screw ([adfcd20](https://github.com/Hackuarium/legoino-navigator-serial/commit/adfcd20465481a7c28d2c32e6d9a15d492dc0a90))
+* add home ([40ac0b9](https://github.com/Hackuarium/legoino-navigator-serial/commit/40ac0b9d08990f31da8545e644da522179f0461e))
+* add home ([4e06bfa](https://github.com/Hackuarium/legoino-navigator-serial/commit/4e06bfa1bd5ce6eb0b812426f66d082b877c7b2f))
+* add screws ([32365fb](https://github.com/Hackuarium/legoino-navigator-serial/commit/32365fb9c4818452c65ebe4a89792aab40ca7d39))
+* filter g command with comment ([f7c36a1](https://github.com/Hackuarium/legoino-navigator-serial/commit/f7c36a1b753365b31b51897aacdb7d2b89cdc413))
+
+
+### Bug Fixes
+
+* logging error that does not exists ([03db957](https://github.com/Hackuarium/legoino-navigator-serial/commit/03db95780c4c41f278f9b57913d64144a6c51f03))
+* scan for screws ([3d6cdc8](https://github.com/Hackuarium/legoino-navigator-serial/commit/3d6cdc88d68849e2434c3b35b491d94df3cc9d9f))
+* this.action can be undefined ([1281832](https://github.com/Hackuarium/legoino-navigator-serial/commit/1281832ca798bcb54be03015bc65867f6bfeab36))
+
 ## [0.2.2](https://github.com/Hackuarium/legoino-navigator-serial/compare/v0.2.1...v0.2.2) (2023-03-06)
 
 
